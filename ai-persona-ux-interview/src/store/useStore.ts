@@ -21,28 +21,29 @@ export interface Message {
   createdAt: string;
 }
 
-interface AppState {
-  sessionId: string | null;
-  image: UploadedImage | null;
+export interface AppState {
+  // Demo Mode
+  isDemoMode: boolean;
+  setDemoMode: (isDemo: boolean) => void;
+
+  // Persona
   persona: PersonaState;
+  setPersona: (persona: Partial<PersonaState>) => void;
+
+  // Image
+  image: UploadedImage | null;
+  setImage: (image: UploadedImage | null) => void;
+
+  // Chat
   messages: Message[];
   isStreaming: boolean;
-  isDemoMode: boolean;
-  
-  // Actions
-  setSessionId: (id: string | null) => void;
-  setImage: (image: UploadedImage | null) => void;
-  setPersona: (persona: Partial<PersonaState>) => void;
   addMessage: (message: Message) => void;
-  appendToLastMessage: (chunk: string) => void;
-  clearMessages: () => void;
-  setStreaming: (streaming: boolean) => void;
-  setDemoMode: (isDemo: boolean) => void;
-  resetSession: () => void;
+  updateLastMessage: (content: string) => void;
+  setStreaming: (isStreaming: boolean) => void;
+  clearChat: () => void;
 }
 
 export const useStore = create<AppState>((set) => ({
-  sessionId: null,
   image: null,
   persona: {
     region: 'Korea',
@@ -53,7 +54,6 @@ export const useStore = create<AppState>((set) => ({
   isStreaming: false,
   isDemoMode: true,
 
-  setSessionId: (id) => set({ sessionId: id }),
   setImage: (image) => set({ image }),
   setPersona: (personaUpdate) => set((state) => ({ 
     persona: { ...state.persona, ...personaUpdate } 
@@ -61,19 +61,14 @@ export const useStore = create<AppState>((set) => ({
   addMessage: (message) => set((state) => ({ 
     messages: [...state.messages, message] 
   })),
-  appendToLastMessage: (chunk) => set((state) => {
+  updateLastMessage: (content) => set((state) => {
     if (state.messages.length === 0) return state;
     const updated = [...state.messages];
     const last = updated[updated.length - 1];
-    updated[updated.length - 1] = { ...last, content: last.content + chunk };
+    updated[updated.length - 1] = { ...last, content };
     return { messages: updated };
   }),
-  clearMessages: () => set({ messages: [], sessionId: null }),
+  clearChat: () => set({ messages: [], image: null }),
   setStreaming: (streaming) => set({ isStreaming: streaming }),
   setDemoMode: (isDemo) => set({ isDemoMode: isDemo }),
-  resetSession: () => set({
-    sessionId: null,
-    image: null,
-    messages: [],
-  }),
 }));

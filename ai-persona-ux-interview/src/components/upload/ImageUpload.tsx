@@ -2,28 +2,17 @@ import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { UploadCloud, X } from 'lucide-react';
 import { useStore } from '../../store/useStore.ts';
+import { useGlobalImageUpload } from '../../hooks/useGlobalImageUpload.ts';
 
 export function ImageUpload() {
   const { image, setImage } = useStore();
+  const { handleImageUpload } = useGlobalImageUpload();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
-      const file = acceptedFiles[0];
-      const previewUrl = URL.createObjectURL(file);
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage({
-          id: Date.now().toString(),
-          name: file.name,
-          previewUrl,
-          file,
-          base64: reader.result as string,
-        });
-      };
-      reader.readAsDataURL(file);
+      handleImageUpload(acceptedFiles[0]);
     }
-  }, [setImage]);
+  }, [handleImageUpload]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
     onDrop,

@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import { useStore, type Message } from '../../store/useStore.ts';
 import { generatePersonaReply } from '../../lib/openai.ts';
-import { supabase } from '../../lib/supabase.ts';
 
 export function ChatInput() {
   const [inputValue, setInputValue] = useState('');
   const {
-    sessionId, setSessionId,
     image, persona, messages,
-    addMessage, appendToLastMessage,
+    addMessage, updateLastMessage,
     isStreaming, setStreaming,
   } = useStore();
 
@@ -20,21 +18,6 @@ export function ChatInput() {
     setInputValue('');
     setStreaming(true);
 
-    let currentSessionId = sessionId;
-    if (!currentSessionId) {
-      currentSessionId = crypto.randomUUID();
-      setSessionId(currentSessionId);
-
-      supabase.from('sessions').insert({
-        id: currentSessionId,
-        created_at: new Date().toISOString(),
-        persona: persona,
-        image_name: image.name || 'uploaded_image'
-      }).then(({ error }) => {
-        if (error) console.error('Supabase session insert error:', error);
-      });
-    }
-
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: 'moderator',
@@ -43,17 +26,6 @@ export function ChatInput() {
     };
     addMessage(userMessage);
 
-    supabase.from('messages').insert({
-      id: userMessage.id,
-      session_id: currentSessionId,
-      role: userMessage.role,
-      content: userMessage.content,
-      created_at: userMessage.createdAt
-    }).then(({ error }) => {
-      if (error) console.error('Supabase user msg insert error:', error);
-    });
-
-    // Add an empty AI message placeholder that will be filled via streaming
     const aiMessageId = crypto.randomUUID();
     const aiMessageCreatedAt = new Date().toISOString();
     addMessage({
@@ -64,25 +36,17 @@ export function ChatInput() {
     });
 
     try {
-      const fullText = await generatePersonaReply(
+      let accumulatedText = '';
+      await generatePersonaReply(
         persona,
         image,
         textToSend,
         messages,
-        (chunk) => appendToLastMessage(chunk)
+        (chunk) => {
+          accumulatedText += chunk;
+          updateLastMessage(accumulatedText);
+        }
       );
-
-      // Save completed AI message to Supabase
-      supabase.from('messages').insert({
-        id: aiMessageId,
-        session_id: currentSessionId,
-        role: 'ai-user',
-        content: fullText,
-        created_at: aiMessageCreatedAt
-      }).then(({ error }) => {
-        if (error) console.error('Supabase AI msg insert error:', error);
-      });
-
     } catch (error: any) {
       console.error('Failed to send message:', error);
 
@@ -93,8 +57,7 @@ export function ChatInput() {
         errorMessage = '이미지 오류: 첨부된 이미지를 처리할 수 없습니다. 다른 이미지를 업로드해주세요.';
       }
 
-      // Replace the empty placeholder with the error message
-      appendToLastMessage(errorMessage);
+      updateLastMessage(errorMessage);
     } finally {
       setStreaming(false);
     }
@@ -113,7 +76,7 @@ export function ChatInput() {
     };
     window.addEventListener('send-quick-prompt', handleQuickPrompt);
     return () => window.removeEventListener('send-quick-prompt', handleQuickPrompt);
-  }, [image, persona, messages, isStreaming, sessionId]);
+  }, [image, persona, messages, isStreaming]);
 
   const disabled = !image || isStreaming;
 
