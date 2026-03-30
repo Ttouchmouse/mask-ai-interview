@@ -1,7 +1,62 @@
 @import "tailwindcss";
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
+@font-face {
+  font-family: 'PretendardJP';
+  font-weight: 100;
+  font-display: swap;
+  src: url('/src/assets/Font/PretendardJP-Thin.otf') format('opentype');
+}
+@font-face {
+  font-family: 'PretendardJP';
+  font-weight: 200;
+  font-display: swap;
+  src: url('/src/assets/Font/PretendardJP-ExtraLight.otf') format('opentype');
+}
+@font-face {
+  font-family: 'PretendardJP';
+  font-weight: 300;
+  font-display: swap;
+  src: url('/src/assets/Font/PretendardJP-Light.otf') format('opentype');
+}
+@font-face {
+  font-family: 'PretendardJP';
+  font-weight: 400;
+  font-display: swap;
+  src: url('/src/assets/Font/PretendardJP-Regular.otf') format('opentype');
+}
+@font-face {
+  font-family: 'PretendardJP';
+  font-weight: 500;
+  font-display: swap;
+  src: url('/src/assets/Font/PretendardJP-Medium.otf') format('opentype');
+}
+@font-face {
+  font-family: 'PretendardJP';
+  font-weight: 600;
+  font-display: swap;
+  src: url('/src/assets/Font/PretendardJP-SemiBold.otf') format('opentype');
+}
+@font-face {
+  font-family: 'PretendardJP';
+  font-weight: 700;
+  font-display: swap;
+  src: url('/src/assets/Font/PretendardJP-Bold.otf') format('opentype');
+}
+@font-face {
+  font-family: 'PretendardJP';
+  font-weight: 800;
+  font-display: swap;
+  src: url('/src/assets/Font/PretendardJP-ExtraBold.otf') format('opentype');
+}
+@font-face {
+  font-family: 'PretendardJP';
+  font-weight: 900;
+  font-display: swap;
+  src: url('/src/assets/Font/PretendardJP-Black.otf') format('opentype');
+}
 
 @theme {
+  --font-sans: 'PretendardJP', sans-serif;
+  
   --color-primary: #3182F6;
   --color-primary-hover: #1b64da;
   
@@ -19,7 +74,7 @@
   body {
     background-color: var(--color-surface-bg);
     color: var(--color-text-main);
-    font-family: 'Pretendard', -apple-system, sans-serif;
+    font-family: 'PretendardJP', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   }
 }
 

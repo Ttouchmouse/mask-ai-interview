@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import { useStore, type Message } from '../../store/useStore.ts';
 import { generatePersonaReply } from '../../lib/openai.ts';
+import { generateFollowUpQuestions } from '../../lib/followUp.ts';
+
+let callId = 0;
 
 export function ChatInput() {
   const [inputValue, setInputValue] = useState('');
@@ -9,6 +12,9 @@ export function ChatInput() {
     image, persona, messages,
     addMessage, updateLastMessage,
     isStreaming, setStreaming,
+    clearFollowUpQuestions,
+    setIsGeneratingFollowUp,
+    setFollowUpQuestions,
   } = useStore();
 
   const handleSend = async (overrideMessage?: string) => {
@@ -47,11 +53,39 @@ export function ChatInput() {
           updateLastMessage(accumulatedText);
         }
       );
+
+      // Fire and forget follow-up questions generation
+      const currentCall = ++callId;
+      setIsGeneratingFollowUp(true);
+
+      generateFollowUpQuestions(accumulatedText)
+        .then((q) => {
+          console.log("follow-up:", q);
+          if (currentCall === callId) {
+            clearFollowUpQuestions();
+            setFollowUpQuestions(q);
+          }
+        })
+        .catch((e) => {
+          console.error("follow-up error:", e);
+          if (currentCall === callId) {
+            setFollowUpQuestions([]);
+          }
+        })
+        .finally(() => {
+          if (currentCall === callId) {
+            setIsGeneratingFollowUp(false);
+          }
+        });
+
+
     } catch (error: any) {
       console.error('Failed to send message:', error);
 
       let errorMessage = '서버 연결 오류: 서버에 접속할 수 없습니다. 잠시 후 다시 시도해주세요.';
-      if (error.message.includes('RATE_LIMIT')) {
+      if (error.message.includes('API_SERVER_DOWN')) {
+        errorMessage = '로컬 API 서버 연결 실패: 로컬 API 서버가 실행되지 않았습니다. 터미널에서 백엔드 서버(vercel dev)를 포트 3000으로 실행해주세요.';
+      } else if (error.message.includes('RATE_LIMIT')) {
         errorMessage = 'API 한도 초과: 서비스 이용량이 일시적으로 초과되었습니다. 잠시 후 다시 시도해주세요.';
       } else if (error.message.includes('IMAGE_ERROR')) {
         errorMessage = '이미지 오류: 첨부된 이미지를 처리할 수 없습니다. 다른 이미지를 업로드해주세요.';
@@ -72,10 +106,16 @@ export function ChatInput() {
 
   useEffect(() => {
     const handleQuickPrompt = (e: any) => {
-      handleSend(e.detail);
+      const { prompt, autoSend } = e.detail;
+      if (autoSend) {
+        handleSend(prompt);
+      } else {
+        setInputValue(prompt);
+        // We could also run focus() if we had a ref on the textarea
+      }
     };
-    window.addEventListener('send-quick-prompt', handleQuickPrompt);
-    return () => window.removeEventListener('send-quick-prompt', handleQuickPrompt);
+    window.addEventListener('quick-prompt-action', handleQuickPrompt);
+    return () => window.removeEventListener('quick-prompt-action', handleQuickPrompt);
   }, [image, persona, messages, isStreaming]);
 
   const disabled = !image || isStreaming;
@@ -91,8 +131,8 @@ export function ChatInput() {
             !image
               ? '인터뷰를 시작하려면 먼저 이미지를 업로드하세요...'
               : isStreaming
-              ? '응답 중...'
-              : '질문을 입력해주세요... (Shift+Enter 줄바꿈)'
+                ? '응답 중...'
+                : '질문을 입력해주세요... (Shift+Enter 줄바꿈)'
           }
           disabled={disabled}
           className="w-full max-h-32 min-h-[44px] bg-transparent resize-none outline-none py-2 px-2 text-[14px] font-[400] text-[var(--color-text-main)] placeholder:text-[var(--color-text-muted)] disabled:opacity-50"

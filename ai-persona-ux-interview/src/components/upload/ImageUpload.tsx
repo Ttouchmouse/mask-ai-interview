@@ -2,11 +2,11 @@ import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { UploadCloud, X } from 'lucide-react';
 import { useStore } from '../../store/useStore.ts';
-import { useGlobalImageUpload } from '../../hooks/useGlobalImageUpload.ts';
+import { useImageUpload } from '../../hooks/useGlobalImageUpload.ts';
 
 export function ImageUpload() {
   const { image, setImage } = useStore();
-  const { handleImageUpload } = useGlobalImageUpload();
+  const { handleImageUpload } = useImageUpload();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
@@ -27,11 +27,11 @@ export function ImageUpload() {
 
   if (image) {
     return (
-      <div className="relative group w-full rounded-none overflow-hidden border border-[var(--color-surface-border)] bg-[var(--color-surface-bg)] flex items-center justify-center min-h-[140px]">
+      <div className="relative group w-full h-full flex-1 min-h-0 rounded-[12px] overflow-hidden border border-[var(--color-surface-border)] bg-[var(--color-surface-bg)] flex items-center justify-center">
         <img 
           src={image.previewUrl} 
           alt="Uploaded UI Mockup" 
-          className="w-full h-auto max-h-[300px] object-contain object-top"
+          className="w-full h-full object-contain"
         />
         
         {/* Hover overlay actions */}
@@ -59,7 +59,7 @@ export function ImageUpload() {
   return (
     <div 
       {...getRootProps()} 
-      className={`w-full border border-dashed rounded-none py-10 px-4 flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${
+      className={`w-full h-full flex-1 min-h-0 border border-dashed rounded-[12px] py-10 px-4 flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${
         isDragActive ? 'border-[var(--color-primary)] bg-[var(--color-surface-chat-mod)]' : 'border-[var(--color-surface-border)] hover:border-[var(--color-primary)] bg-[var(--color-surface-bg)]'
       }`}
     >

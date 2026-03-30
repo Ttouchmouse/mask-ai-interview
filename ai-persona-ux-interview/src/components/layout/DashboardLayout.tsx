@@ -1,5 +1,5 @@
 import { ImageUpload } from '../upload/ImageUpload.tsx';
-import { PersonaControls } from '../persona/PersonaControls.tsx';
+import { FilterChips } from '../persona/FilterChips.tsx';
 import { ChatPanel } from '../chat/ChatPanel.tsx';
 
 export function DashboardLayout() {
@@ -10,30 +10,19 @@ export function DashboardLayout() {
       <div className="w-full md:w-[380px] flex-shrink-0 h-full flex flex-col bg-white border-r border-[var(--color-surface-border)] overflow-y-auto">
         
         {/* Header */}
-        <div className="px-6 py-6 border-b border-[var(--color-surface-border)] bg-white sticky top-0 z-20">
-          <h1 className="text-[16px] font-[500] text-[var(--color-text-main)] uppercase tracking-wide">
+        <div className="flex-shrink-0 px-6 py-5 bg-white z-20">
+          <h1 className="text-[16px] font-bold text-[var(--color-text-main)]">
             AI 페르소나 UX 인터뷰
           </h1>
-          <p className="text-[13px] font-[400] text-[var(--color-text-sub)] mt-2 leading-relaxed">
+          <p className="text-[13px] font-[400] text-[var(--color-text-sub)] mt-1">
             목업을 업로드하고 사용자 관점에서 인터뷰를 진행하세요.
           </p>
+          <FilterChips />
         </div>
 
         {/* Content */}
-        <div className="flex-1 p-6 flex flex-col gap-10">
-          
-          <section className="flex flex-col gap-4">
-            <div className="text-[13px] font-[500] text-[var(--color-text-main)] uppercase tracking-wider">UI 목업</div>
-            <ImageUpload />
-          </section>
-
-          <div className="h-px bg-[var(--color-surface-border)] w-full hidden md:block"></div>
-
-          <section className="flex flex-col gap-4">
-            <div className="text-[13px] font-[500] text-[var(--color-text-main)] uppercase tracking-wider">타겟 페르소나</div>
-            <PersonaControls />
-          </section>
-
+        <div className="flex-1 min-h-0 p-6 flex flex-col">
+          <ImageUpload />
         </div>
       </div>
 

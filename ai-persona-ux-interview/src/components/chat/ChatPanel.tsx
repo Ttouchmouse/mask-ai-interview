@@ -2,10 +2,10 @@ import { useRef, useEffect } from 'react';
 import { useStore } from '../../store/useStore.ts';
 import { ChatInput } from './ChatInput.tsx';
 import { QuickPrompts } from './QuickPrompts.tsx';
-import { MessageSquare, Bot, User, AlertCircle } from 'lucide-react';
+import { MessageSquare, Bot, AlertCircle } from 'lucide-react';
 
 export function ChatPanel() {
-  const { messages, isDemoMode, image, isStreaming } = useStore();
+  const { messages, image, isStreaming } = useStore();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -28,13 +28,6 @@ export function ChatPanel() {
           <MessageSquare className="w-4 h-4 text-[var(--color-primary)]" />
           <h2 className="text-[13px] font-[500] text-[var(--color-text-main)] uppercase tracking-widest">인터뷰 기록</h2>
         </div>
-        
-        {isDemoMode && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-yellow-700 rounded-none text-[12px] font-[500] border border-yellow-200">
-            <AlertCircle className="w-3.5 h-3.5" />
-            데모 모드
-          </div>
-        )}
       </div>
 
       {/* Messages Area */}
@@ -68,24 +61,15 @@ export function ChatPanel() {
               return (
                 <div 
                   key={msg.id} 
-                  className={`flex gap-4 ${msg.role === 'moderator' ? 'flex-row-reverse' : ''}`}
+                  className={`flex w-full ${msg.role === 'moderator' ? 'justify-end text-right' : 'justify-start text-left'}`}
                 >
-                  {/* Avatar */}
-                  <div className={`w-8 h-8 rounded-none flex items-center justify-center flex-shrink-0 border ${
-                    msg.role === 'moderator' 
-                      ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]' 
-                      : 'bg-white text-[var(--color-text-main)] border-[var(--color-surface-border)]'
-                  }`}>
-                    {msg.role === 'moderator' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-                  </div>
-
                   {/* Bubble */}
-                  <div className={`px-5 py-4 min-w-[20%] max-w-[80%] ${
+                  <div className={`px-[16px] py-[12px] max-w-[72%] rounded-[16px] text-[14px] text-[#1A1A1A] leading-[1.6] shadow-none ${
                     msg.role === 'moderator'
-                      ? 'bg-[var(--color-surface-chat-mod)] text-[var(--color-text-main)] rounded-none'
-                      : 'bg-white text-[var(--color-text-main)] border border-[var(--color-surface-border)] border-l-2 border-l-[var(--color-primary)] rounded-none'
+                      ? 'bg-[#FFFFFF] border border-[#E2E4E8] ml-auto text-left'
+                      : 'bg-[#ECEEF2] border-none text-left'
                   }`}>
-                    <p className="text-[14px] font-[400] leading-[1.7] whitespace-pre-wrap">
+                    <p className="whitespace-pre-wrap break-words">
                       {msg.content}
                       {showCursor && <span className="streaming-cursor" />}
                     </p>

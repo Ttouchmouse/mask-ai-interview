@@ -10,6 +10,7 @@ export interface UploadedImage {
 
 export interface PersonaState {
   region: string;
+  language: string;
   ageGroup: string;
   userType: string;
 }
@@ -22,10 +23,6 @@ export interface Message {
 }
 
 export interface AppState {
-  // Demo Mode
-  isDemoMode: boolean;
-  setDemoMode: (isDemo: boolean) => void;
-
   // Persona
   persona: PersonaState;
   setPersona: (persona: Partial<PersonaState>) => void;
@@ -33,6 +30,14 @@ export interface AppState {
   // Image
   image: UploadedImage | null;
   setImage: (image: UploadedImage | null) => void;
+
+  // Follow Up Questions
+  followUpQuestions: string[];
+  isGeneratingFollowUp: boolean;
+  lastMessageId: string;
+  setFollowUpQuestions: (questions: string[]) => void;
+  setIsGeneratingFollowUp: (isGenerating: boolean) => void;
+  clearFollowUpQuestions: () => void;
 
   // Chat
   messages: Message[];
@@ -46,20 +51,27 @@ export interface AppState {
 export const useStore = create<AppState>((set) => ({
   image: null,
   persona: {
-    region: 'Korea',
+    region: '북미',
+    language: '영어',
     ageGroup: '30s / 40s',
     userType: 'new user',
   },
   messages: [],
   isStreaming: false,
-  isDemoMode: true,
+  followUpQuestions: [],
+  isGeneratingFollowUp: false,
+  lastMessageId: '',
 
   setImage: (image) => set({ image }),
   setPersona: (personaUpdate) => set((state) => ({ 
     persona: { ...state.persona, ...personaUpdate } 
   })),
+  setFollowUpQuestions: (questions) => set({ followUpQuestions: questions }),
+  setIsGeneratingFollowUp: (isGenerating) => set({ isGeneratingFollowUp: isGenerating }),
+  clearFollowUpQuestions: () => set({ followUpQuestions: [], lastMessageId: '', isGeneratingFollowUp: false }),
   addMessage: (message) => set((state) => ({ 
-    messages: [...state.messages, message] 
+    messages: [...state.messages, message],
+    lastMessageId: message.id
   })),
   updateLastMessage: (content) => set((state) => {
     if (state.messages.length === 0) return state;
@@ -68,7 +80,6 @@ export const useStore = create<AppState>((set) => ({
     updated[updated.length - 1] = { ...last, content };
     return { messages: updated };
   }),
-  clearChat: () => set({ messages: [], image: null }),
+  clearChat: () => set({ messages: [], followUpQuestions: [], lastMessageId: '', isGeneratingFollowUp: false }),
   setStreaming: (streaming) => set({ isStreaming: streaming }),
-  setDemoMode: (isDemo) => set({ isDemoMode: isDemo }),
 }));

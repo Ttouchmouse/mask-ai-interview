@@ -1,7 +1,7 @@
 import { useStore } from '../../store/useStore.ts';
 
 export function PersonaControls() {
-  const { persona, setPersona, messages, clearMessages } = useStore();
+  const { persona, setPersona, messages, clearChat } = useStore();
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -11,10 +11,16 @@ export function PersonaControls() {
         "페르소나를 변경하면 현재 대화가 삭제됩니다. 계속하시겠습니까?"
       );
       if (!confirm) return;
-      clearMessages();
+      console.log("confirmed");
+      clearChat();
     }
     
-    setPersona({ [name]: value });
+    if (name === "region_language") {
+      const [region, language] = value.split("|");
+      setPersona({ region, language });
+    } else {
+      setPersona({ [name]: value });
+    }
   };
 
   return (
@@ -25,16 +31,16 @@ export function PersonaControls() {
           지역 / 언어
         </label>
         <select 
-          id="region"
-          name="region" 
-          value={persona.region} 
+          id="region_language"
+          name="region_language" 
+          value={`${persona.region}|${persona.language}`} 
           onChange={handleChange}
           className="w-full bg-white border-0 border-b border-[var(--color-surface-border)] rounded-none px-1 py-2.5 text-[14px] font-[400] text-[var(--color-text-main)] focus:ring-0 focus:border-[var(--color-primary)] outline-none transition-colors cursor-pointer"
         >
-          <option value="North America">북미 (영어)</option>
-          <option value="Korea">한국 (한국어)</option>
-          <option value="Japan">일본 (일본어)</option>
-          <option value="Europe">유럽 (영어)</option>
+          <option value="북미|영어">북미 (영어)</option>
+          <option value="한국|한국어">한국 (한국어)</option>
+          <option value="일본|일본어">일본 (일본어)</option>
+          <option value="유럽|영어">유럽 (영어)</option>
         </select>
       </div>
 
