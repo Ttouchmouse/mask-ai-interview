@@ -31,6 +31,13 @@ export interface AppState {
   image: UploadedImage | null;
   setImage: (image: UploadedImage | null) => void;
 
+  // Initial Questions (shown before first message)
+  initialQuestions: string[];
+  isGeneratingInitialQuestions: boolean;
+  setInitialQuestions: (questions: string[]) => void;
+  setIsGeneratingInitialQuestions: (isGenerating: boolean) => void;
+  clearInitialQuestions: () => void;
+
   // Follow Up Questions
   followUpQuestions: string[];
   isGeneratingFollowUp: boolean;
@@ -58,18 +65,23 @@ export const useStore = create<AppState>((set) => ({
   },
   messages: [],
   isStreaming: false,
+  initialQuestions: [],
+  isGeneratingInitialQuestions: false,
   followUpQuestions: [],
   isGeneratingFollowUp: false,
   lastMessageId: '',
 
   setImage: (image) => set({ image }),
-  setPersona: (personaUpdate) => set((state) => ({ 
-    persona: { ...state.persona, ...personaUpdate } 
+  setPersona: (personaUpdate) => set((state) => ({
+    persona: { ...state.persona, ...personaUpdate }
   })),
+  setInitialQuestions: (questions) => set({ initialQuestions: questions }),
+  setIsGeneratingInitialQuestions: (isGenerating) => set({ isGeneratingInitialQuestions: isGenerating }),
+  clearInitialQuestions: () => set({ initialQuestions: [], isGeneratingInitialQuestions: false }),
   setFollowUpQuestions: (questions) => set({ followUpQuestions: questions }),
   setIsGeneratingFollowUp: (isGenerating) => set({ isGeneratingFollowUp: isGenerating }),
   clearFollowUpQuestions: () => set({ followUpQuestions: [], lastMessageId: '', isGeneratingFollowUp: false }),
-  addMessage: (message) => set((state) => ({ 
+  addMessage: (message) => set((state) => ({
     messages: [...state.messages, message],
     lastMessageId: message.id
   })),
@@ -80,6 +92,6 @@ export const useStore = create<AppState>((set) => ({
     updated[updated.length - 1] = { ...last, content };
     return { messages: updated };
   }),
-  clearChat: () => set({ messages: [], followUpQuestions: [], lastMessageId: '', isGeneratingFollowUp: false }),
+  clearChat: () => set({ messages: [], initialQuestions: [], isGeneratingInitialQuestions: false, followUpQuestions: [], lastMessageId: '', isGeneratingFollowUp: false }),
   setStreaming: (streaming) => set({ isStreaming: streaming }),
 }));

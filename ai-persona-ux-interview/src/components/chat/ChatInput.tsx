@@ -1,25 +1,61 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Send } from 'lucide-react';
 import { useStore, type Message } from '../../store/useStore.ts';
 import { generatePersonaReply } from '../../lib/openai.ts';
 import { generateFollowUpQuestions } from '../../lib/followUp.ts';
+import { generateInitialQuestions } from '../../lib/initialQuestions.ts';
 
 let callId = 0;
 
 export function ChatInput() {
   const [inputValue, setInputValue] = useState('');
+  const lastImageIdRef = useRef<string | null>(null);
+
   const {
     image, persona, messages,
     addMessage, updateLastMessage,
     isStreaming, setStreaming,
+    initialQuestions,
+    setInitialQuestions, setIsGeneratingInitialQuestions, clearInitialQuestions,
     clearFollowUpQuestions,
     setIsGeneratingFollowUp,
     setFollowUpQuestions,
   } = useStore();
 
+  // Generate initial questions once when a new image is uploaded (before any messages)
+  useEffect(() => {
+    if (!image?.base64) {
+      clearInitialQuestions();
+      lastImageIdRef.current = null;
+      return;
+    }
+    // Only generate if this is a new image and conversation hasn't started
+    if (image.id === lastImageIdRef.current) return;
+    if (messages.length > 0) return;
+
+    lastImageIdRef.current = image.id;
+    setIsGeneratingInitialQuestions(true);
+
+    generateInitialQuestions(image)
+      .then((questions) => {
+        setInitialQuestions(questions);
+      })
+      .catch(() => {
+        clearInitialQuestions();
+      })
+      .finally(() => {
+        setIsGeneratingInitialQuestions(false);
+      });
+  }, [image]); // Only watch image — intentionally excludes messages to avoid re-triggering
+
   const handleSend = async (overrideMessage?: string) => {
     const textToSend = overrideMessage || inputValue.trim();
     if (!textToSend || !image || isStreaming) return;
+
+    // Clear initial questions on first send
+    if (messages.length === 0 && initialQuestions.length > 0) {
+      clearInitialQuestions();
+    }
 
     setInputValue('');
     setStreaming(true);
