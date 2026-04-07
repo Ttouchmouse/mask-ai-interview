@@ -1,8 +1,8 @@
 import type { UploadedImage } from '../store/useStore.ts';
 
 export interface Insight {
-  hypothesis: string;
-  designActions: string[];
+  insight: string;
+  designAction?: string;
 }
 
 export async function generateInsight(
@@ -23,11 +23,7 @@ export async function generateInsight(
 
     if (response.ok) {
       const data: unknown = await response.json();
-      if (
-        data &&
-        typeof (data as any).hypothesis === 'string' &&
-        Array.isArray((data as any).designActions)
-      ) {
+      if (data && typeof (data as any).insight === 'string') {
         return data as Insight;
       }
     }

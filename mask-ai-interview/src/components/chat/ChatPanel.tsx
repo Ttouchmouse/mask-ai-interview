@@ -125,34 +125,17 @@ export function ChatPanel() {
                             <div className="mt-5 pt-4 border-t border-[#E6E9F0]">
                               {isLoadingInsight ? (
                                 /* Skeleton */
-                                <div className="flex flex-col gap-3">
-                                  <div className="flex flex-col gap-1">
-                                    <div className="h-[10px] w-12 bg-[#E6E9F0] animate-pulse rounded-[4px]" />
-                                    <div className="h-[13px] w-64 bg-[#E6E9F0] animate-pulse rounded-[4px]" />
-                                  </div>
-                                  <div className="flex flex-col gap-1">
-                                    <div className="h-[10px] w-16 bg-[#E6E9F0] animate-pulse rounded-[4px]" />
-                                    <div className="h-[13px] w-48 bg-[#E6E9F0] animate-pulse rounded-[4px]" />
-                                  </div>
+                                <div className="flex flex-col gap-[6px]">
+                                  <div className="h-[13px] w-72 bg-[#E6E9F0] animate-pulse rounded-[4px]" />
+                                  <div className="h-[13px] w-48 bg-[#E6E9F0] animate-pulse rounded-[4px]" />
                                 </div>
                               ) : insight ? (
                                 /* Insight content */
-                                <div className="flex flex-col gap-3">
-                                  <div>
-                                    <p className="text-[11px] font-[600] text-[#8996A4] tracking-wide uppercase mb-[6px]">가설</p>
-                                    <p className="text-[13px] text-[#2E394A] leading-[1.6]">{insight.hypothesis}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-[11px] font-[600] text-[#8996A4] tracking-wide uppercase mb-[6px]">디자인 액션</p>
-                                    <ul className="flex flex-col gap-[6px]">
-                                      {insight.designActions.map((action, i) => (
-                                        <li key={i} className="flex gap-2 text-[13px] text-[#2E394A] leading-[1.6]">
-                                          <span className="text-[#8996A4] flex-shrink-0 mt-[1px]">→</span>
-                                          <span>{action}</span>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
+                                <div className="flex flex-col gap-2">
+                                  <p className="text-[13px] text-[#2E394A] leading-[1.6]">{insight.insight}</p>
+                                  {insight.designAction && (
+                                    <p className="text-[13px] text-[#8996A4] leading-[1.6]">→ {insight.designAction}</p>
+                                  )}
                                 </div>
                               ) : null}
                             </div>
