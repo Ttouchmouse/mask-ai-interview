@@ -4,6 +4,7 @@ import { useStore, type Message } from '../../store/useStore.ts';
 import { generatePersonaReply } from '../../lib/openai.ts';
 import { generateFollowUpQuestions } from '../../lib/followUp.ts';
 import { generateInitialQuestions } from '../../lib/initialQuestions.ts';
+import { generateInsight } from '../../lib/insight.ts';
 
 let callId = 0;
 
@@ -20,6 +21,8 @@ export function ChatInput() {
     clearFollowUpQuestions,
     setIsGeneratingFollowUp,
     setFollowUpQuestions,
+    setInsight,
+    setGeneratingInsightFor,
   } = useStore();
 
   // Generate initial questions once when a new image is uploaded (before any messages)
@@ -29,7 +32,6 @@ export function ChatInput() {
       lastImageIdRef.current = null;
       return;
     }
-    // Only generate if this is a new image and conversation hasn't started
     if (image.id === lastImageIdRef.current) return;
     if (messages.length > 0) return;
 
@@ -52,10 +54,8 @@ export function ChatInput() {
     const textToSend = overrideMessage || inputValue.trim();
     if (!textToSend || !image || isStreaming) return;
 
-    // Use explicit source metadata — never infer from stale closure state
     const isInitialQuestionSend = meta?.source === 'initial';
 
-    // Hide initial questions on send — keep them in store so they can be re-opened
     if (isInitialQuestionSend || showInitialQuestions) {
       setShowInitialQuestions(false);
     }
@@ -72,12 +72,11 @@ export function ChatInput() {
     addMessage(userMessage);
 
     const aiMessageId = crypto.randomUUID();
-    const aiMessageCreatedAt = new Date().toISOString();
     addMessage({
       id: aiMessageId,
       role: 'ai-user',
       content: '',
-      createdAt: aiMessageCreatedAt
+      createdAt: new Date().toISOString()
     });
 
     try {
@@ -93,10 +92,10 @@ export function ChatInput() {
         }
       );
 
-      // Fire and forget follow-up questions generation
       const currentCall = ++callId;
-      setIsGeneratingFollowUp(true);
 
+      // Fire and forget: follow-up questions
+      setIsGeneratingFollowUp(true);
       generateFollowUpQuestions(accumulatedText)
         .then((q) => {
           if (currentCall === callId) {
@@ -105,16 +104,21 @@ export function ChatInput() {
           }
         })
         .catch(() => {
-          if (currentCall === callId) {
-            setFollowUpQuestions([]);
-          }
+          if (currentCall === callId) setFollowUpQuestions([]);
         })
         .finally(() => {
-          if (currentCall === callId) {
-            setIsGeneratingFollowUp(false);
-          }
+          if (currentCall === callId) setIsGeneratingFollowUp(false);
         });
 
+      // Fire and forget: insight generation (parallel, independent)
+      setGeneratingInsightFor(aiMessageId);
+      generateInsight(image, textToSend, accumulatedText)
+        .then((insight) => {
+          if (insight) setInsight(aiMessageId, insight);
+        })
+        .finally(() => {
+          setGeneratingInsightFor(null);
+        });
 
     } catch (error: any) {
       console.error('Failed to send message:', error);

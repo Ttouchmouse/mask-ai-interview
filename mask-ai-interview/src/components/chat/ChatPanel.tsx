@@ -3,11 +3,10 @@ import { useStore } from '../../store/useStore.ts';
 import { ChatInput } from './ChatInput.tsx';
 import { QuickPrompts } from './QuickPrompts.tsx';
 import { getAppEnv } from '../../lib/env.ts';
-import maskLogo from '../../assets/mask-logo.png';
 import guideLogo from '../../assets/guide-logo.png';
 
 export function ChatPanel() {
-  const { messages, isStreaming } = useStore();
+  const { messages, isStreaming, insights, generatingInsightFor } = useStore();
   const env = getAppEnv();
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -18,7 +17,7 @@ export function ChatPanel() {
         behavior: 'smooth'
       });
     }
-  }, [messages]);
+  }, [messages, insights, generatingInsightFor]);
 
   const isEmpty = messages.length === 0;
 
@@ -40,7 +39,7 @@ export function ChatPanel() {
           <div className="min-h-full flex flex-col items-center justify-center px-8 py-12">
             <div className="flex flex-col items-center w-full max-w-[400px]">
               {/* Logo */}
-              <div className="mb-5">
+              <div className="mb-5 flex flex-col items-center gap-2">
                 <img src={guideLogo} alt="MASK" className="h-[40px] w-auto" />
               </div>
 
@@ -94,35 +93,77 @@ export function ChatPanel() {
           <>
             <div className="flex-1" />
             <div className="flex justify-center w-full">
-            <div className="w-[800px] flex flex-col gap-6 py-8">
-              {messages.map((msg, index) => {
-                const isLastMessage = index === messages.length - 1;
-                const showCursor = isStreaming && isLastMessage && msg.role === 'ai-user';
+              <div className="w-[800px] flex flex-col gap-6 py-8">
+                {messages.map((msg, index) => {
+                  const isLastMessage = index === messages.length - 1;
+                  const showCursor = isStreaming && isLastMessage && msg.role === 'ai-user';
+                  const insight = msg.role === 'ai-user' ? insights[msg.id] : undefined;
+                  const isLoadingInsight = msg.role === 'ai-user' && generatingInsightFor === msg.id;
 
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex w-full ${msg.role === 'moderator' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    {msg.role === 'moderator' ? (
-                      /* User question bubble */
-                      <div className="max-w-[480px] bg-[#E6E9F0] rounded-tl-[12px] rounded-tr-[12px] rounded-bl-[12px] rounded-br-[4px] px-[16px] py-[12px] text-[16px] text-[#2E394A] leading-[1.6]">
-                        <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                      </div>
-                    ) : (
-                      /* AI answer - text only, no bubble */
-                      <div className="max-w-[680px] text-[16px] text-[#2E394A] leading-[1.7]">
-                        <p className="whitespace-pre-wrap break-words">
-                          {msg.content}
-                          {showCursor && <span className="streaming-cursor" />}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex w-full ${msg.role === 'moderator' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      {msg.role === 'moderator' ? (
+                        /* Moderator question bubble */
+                        <div className="max-w-[480px] bg-[#E6E9F0] rounded-tl-[12px] rounded-tr-[12px] rounded-bl-[12px] rounded-br-[4px] px-[16px] py-[12px] text-[16px] text-[#2E394A] leading-[1.6]">
+                          <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                        </div>
+                      ) : (
+                        /* AI answer + insight */
+                        <div className="max-w-[680px] flex flex-col">
+                          <div className="text-[16px] text-[#2E394A] leading-[1.7]">
+                            <p className="whitespace-pre-wrap break-words">
+                              {msg.content}
+                              {showCursor && <span className="streaming-cursor" />}
+                            </p>
+                          </div>
+
+                          {/* Insight — shown after streaming finishes */}
+                          {!showCursor && (isLoadingInsight || insight) && (
+                            <div className="mt-5 pt-4 border-t border-[#E6E9F0]">
+                              {isLoadingInsight ? (
+                                /* Skeleton */
+                                <div className="flex flex-col gap-3">
+                                  <div className="flex flex-col gap-1">
+                                    <div className="h-[10px] w-12 bg-[#E6E9F0] animate-pulse rounded-[4px]" />
+                                    <div className="h-[13px] w-64 bg-[#E6E9F0] animate-pulse rounded-[4px]" />
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    <div className="h-[10px] w-16 bg-[#E6E9F0] animate-pulse rounded-[4px]" />
+                                    <div className="h-[13px] w-48 bg-[#E6E9F0] animate-pulse rounded-[4px]" />
+                                  </div>
+                                </div>
+                              ) : insight ? (
+                                /* Insight content */
+                                <div className="flex flex-col gap-3">
+                                  <div>
+                                    <p className="text-[11px] font-[600] text-[#8996A4] tracking-wide uppercase mb-[6px]">가설</p>
+                                    <p className="text-[13px] text-[#2E394A] leading-[1.6]">{insight.hypothesis}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[11px] font-[600] text-[#8996A4] tracking-wide uppercase mb-[6px]">디자인 액션</p>
+                                    <ul className="flex flex-col gap-[6px]">
+                                      {insight.designActions.map((action, i) => (
+                                        <li key={i} className="flex gap-2 text-[13px] text-[#2E394A] leading-[1.6]">
+                                          <span className="text-[#8996A4] flex-shrink-0 mt-[1px]">→</span>
+                                          <span>{action}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                </div>
+                              ) : null}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
           </>
         )}
       </div>

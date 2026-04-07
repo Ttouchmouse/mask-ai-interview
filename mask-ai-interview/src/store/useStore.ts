@@ -1,4 +1,7 @@
 import { create } from 'zustand';
+import type { Insight } from '../lib/insight.ts';
+
+export type { Insight };
 
 export interface UploadedImage {
   id: string;
@@ -48,6 +51,12 @@ export interface AppState {
   setIsGeneratingFollowUp: (isGenerating: boolean) => void;
   clearFollowUpQuestions: () => void;
 
+  // Insights (keyed by AI message ID)
+  insights: Record<string, Insight>;
+  generatingInsightFor: string | null;
+  setInsight: (messageId: string, insight: Insight) => void;
+  setGeneratingInsightFor: (messageId: string | null) => void;
+
   // Chat
   messages: Message[];
   isStreaming: boolean;
@@ -73,6 +82,8 @@ export const useStore = create<AppState>((set) => ({
   followUpQuestions: [],
   isGeneratingFollowUp: false,
   lastMessageId: '',
+  insights: {},
+  generatingInsightFor: null,
 
   setImage: (image) => set({ image }),
   setPersona: (personaUpdate) => set((state) => ({
@@ -85,6 +96,10 @@ export const useStore = create<AppState>((set) => ({
   setFollowUpQuestions: (questions) => set({ followUpQuestions: questions }),
   setIsGeneratingFollowUp: (isGenerating) => set({ isGeneratingFollowUp: isGenerating }),
   clearFollowUpQuestions: () => set({ followUpQuestions: [], lastMessageId: '', isGeneratingFollowUp: false }),
+  setInsight: (messageId, insight) => set((state) => ({
+    insights: { ...state.insights, [messageId]: insight }
+  })),
+  setGeneratingInsightFor: (messageId) => set({ generatingInsightFor: messageId }),
   addMessage: (message) => set((state) => ({
     messages: [...state.messages, message],
     lastMessageId: message.id
@@ -96,6 +111,6 @@ export const useStore = create<AppState>((set) => ({
     updated[updated.length - 1] = { ...last, content };
     return { messages: updated };
   }),
-  clearChat: () => set({ messages: [], initialQuestions: [], showInitialQuestions: false, isGeneratingInitialQuestions: false, followUpQuestions: [], lastMessageId: '', isGeneratingFollowUp: false }),
+  clearChat: () => set({ messages: [], initialQuestions: [], showInitialQuestions: false, isGeneratingInitialQuestions: false, followUpQuestions: [], lastMessageId: '', isGeneratingFollowUp: false, insights: {}, generatingInsightFor: null }),
   setStreaming: (streaming) => set({ isStreaming: streaming }),
 }));
