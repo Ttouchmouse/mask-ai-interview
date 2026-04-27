@@ -53,6 +53,8 @@ export default async function handler(req: any, res: any) {
 - 화면에 없는 숨겨진 정책이나 비즈니스 규칙을 멋대로 추측하지 마.
 - designAction은 지금 이 화면 안에서 방향만 잡아주는 짧은 문장 1개. 과도하게 상세한 제품 로직 금지.
 - designAction이 딱히 필요없으면 생략하고 insight만 반환해.
+- 화면에 질문과 직접 연결되는 섹션 제목이나 라벨이 이미 보이는 경우, 그것을 UX 해석의 출발점으로 삼아. "유의사항이 안 보인다"나 "약관 링크가 더 필요하다" 같은 해석보다는, "유의사항 섹션은 보이지만 제목 아래 정보 구조가 빠르게 읽히지 않는다"처럼 실제로 보이는 앵커를 기준으로 해석해.
+- 사용자가 화면에서 진입점을 아예 못 찾은 것처럼 인사이트를 만들지 마.
 - 다른 텍스트 없이 유효한 JSON만 반환해.`;
 
     const userContent: OpenAI.Chat.ChatCompletionContentPart[] = [
